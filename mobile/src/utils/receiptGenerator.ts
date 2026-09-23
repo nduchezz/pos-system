@@ -1,6 +1,5 @@
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { File, Paths } from 'expo-file-system';
 import { Sale } from '../api/sales.api';
 import { Business } from '../types';
 
@@ -149,30 +148,18 @@ export const buildReceiptText = (sale: Sale, business: Business | null): string 
 
 /**
  * Generate PDF and open the share sheet
- *
- * On Android (especially in Expo Go), `Print.printToFileAsync` writes the PDF to
- * the app's raw cache directory, which is *not* readable by `expo-sharing` under
- * the scoped file-permission model introduced in SDK 54+. Sharing that URI throws:
- *   "Not allowed to read file under given URL."
- *
- * To work around this, we ask `expo-print` for the PDF as base64 (computed
- * natively, so no read-permission check is needed) and write it into the
- * experience-isolated cache directory exposed by `Paths.cache`, then share that.
  */
 export const shareReceiptPdf = async (sale: Sale, business: Business | null) => {
   const html = buildReceiptHtml(sale, business);
-  const { base64 } = await Print.printToFileAsync({ html, base64: true });
 
-  if (!base64) {
-    throw new Error('Failed to generate PDF');
-  }
+  // Print.printToFileAsync already saves the PDF in a shareable cache location
+  const { uri } = await Print.printToFileAsync({ html });
+
+  // Ensure file:// prefix (Android requires this for sharing)
+  const shareableUri = uri.startsWith('file://') ? uri : `file://${uri}`;
 
   if (await Sharing.isAvailableAsync()) {
-    const safeReceiptNo = sale.receiptNo.replace(/[^a-zA-Z0-9_-]/g, '-');
-    const file = new File(Paths.cache, `receipt-${safeReceiptNo}-${Date.now()}.pdf`);
-    file.write(base64, { encoding: 'base64' });
-
-    await Sharing.shareAsync(file.uri, {
+    await Sharing.shareAsync(shareableUri, {
       mimeType: 'application/pdf',
       dialogTitle: `Receipt ${sale.receiptNo}`,
       UTI: 'com.adobe.pdf',
