@@ -14,6 +14,8 @@ import { useAuth } from '../context/AuthContext';
 import CheckoutModal from '../components/CheckoutModal';
 import ReceiptModal from '../components/ReceiptModal';
 import { COLORS, SIZES } from '../constants/theme';
+import { useNetwork } from '../context/NetworkContext';
+import { productsRepo, categoriesRepo } from '../database';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - SIZES.md * 3) / 2;
@@ -21,6 +23,7 @@ const CARD_WIDTH = (width - SIZES.md * 3) / 2;
 const POSScreen: React.FC = () => {
   const { business } = useAuth();
   const cart = useCartStore();
+  const { isOnline } = useNetwork();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -32,8 +35,25 @@ const POSScreen: React.FC = () => {
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
   const [receiptVisible, setReceiptVisible] = useState(false);
 
-  const loadProducts = useCallback(async () => {
+   const loadProducts = useCallback(async () => {
     try {
+      if (!isOnline) {
+        // OFFLINE: read from SQLite
+        let prods;
+        if (search) {
+          prods = await productsRepo.search(search);
+        } else if (selectedCategory) {
+          prods = await productsRepo.getByCategory(selectedCategory);
+        } else {
+          prods = await productsRepo.getAll();
+        }
+        const cats = await categoriesRepo.getAll();
+        setProducts(prods);
+        setCategories(cats);
+        return;
+      }
+
+      // ONLINE: normal API call
       const [prods, cats] = await Promise.all([
         productsApi.list({ search: search || undefined, categoryId: selectedCategory || undefined }),
         categoriesApi.list(),
@@ -41,11 +61,21 @@ const POSScreen: React.FC = () => {
       setProducts(prods);
       setCategories(cats);
     } catch (err: any) {
-      Alert.alert('Error', err.response?.data?.message || 'Failed to load products');
+      // Fallback: if API fails, read from SQLite
+      try {
+        const prods = search
+          ? await productsRepo.search(search)
+          : await productsRepo.getAll();
+        const cats = await categoriesRepo.getAll();
+        setProducts(prods);
+        setCategories(cats);
+      } catch (dbErr) {
+        Alert.alert('Error', 'Failed to load products');
+      }
     } finally {
       setLoading(false);
     }
-  }, [search, selectedCategory]);
+  }, [search, selectedCategory, isOnline]);
 
   useFocusEffect(
     useCallback(() => {

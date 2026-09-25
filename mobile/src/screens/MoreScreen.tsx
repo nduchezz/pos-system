@@ -5,6 +5,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES } from '../constants/theme';
+import { Alert as RNAlert } from 'react-native';
+import { productsRepo, categoriesRepo, customersRepo, pendingSalesRepo } from '../database';
+import { syncService } from '../services/sync.service';
 
 interface MenuItem {
   label: string;
@@ -16,8 +19,9 @@ interface MenuItem {
 const MoreScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { user, business, logout } = useAuth();
 
-  const items: MenuItem[] = [
+   const items: MenuItem[] = [
     { label: 'Sales History', icon: '🧾', screen: 'SalesHistory' },
+    { label: 'Pending Sales', icon: '⏳', screen: 'PendingSales' },
     { label: 'Categories', icon: '📂', screen: 'Categories' },
     { label: 'Products', icon: '🏷️', screen: 'Products' },
     { label: 'Customers', icon: '👥', screen: 'Customers' },
@@ -25,9 +29,20 @@ const MoreScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     { label: 'Expenses', icon: '💸', screen: 'Expenses' },
     { label: 'Users', icon: '👤', screen: 'Users' },
     { label: 'Settings', icon: '⚙️', screen: 'Settings' },
+    { label: '🔧 Debug DB', icon: '🔍', screen: 'DEBUG_DB' },
+    { label: '🔧 Force Sync', icon: '🔄', screen: 'FORCE_SYNC' },
   ];
 
-  const handlePress = (item: MenuItem) => {
+
+   const handlePress = (item: MenuItem) => {
+    if (item.screen === 'DEBUG_DB') {
+      debugDb();
+      return;
+    }
+    if (item.screen === 'FORCE_SYNC') {
+      forceSync();
+      return;
+    }
     if (item.coming) {
       Alert.alert('Coming soon', `${item.label} will be added in a later phase.`);
     } else {
@@ -40,6 +55,34 @@ const MoreScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Logout', style: 'destructive', onPress: logout },
     ]);
+  };
+  const debugDb = async () => {
+    try {
+      const [pCount, cCount, cuCount, pending] = await Promise.all([
+        productsRepo.count(),
+        categoriesRepo.count(),
+        customersRepo.count(),
+        pendingSalesRepo.countPending(),
+      ]);
+      Alert.alert(
+        'SQLite Status',
+        `Products: ${pCount}\nCategories: ${cCount}\nCustomers: ${cuCount}\nPending: ${pending}`
+      );
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    }
+  };
+
+  const forceSync = async () => {
+    try {
+      const result = await syncService.fullSync();
+      Alert.alert(
+        'Sync Complete',
+        `Products: ${result.catalog.products}\nCategories: ${result.catalog.categories}\nCustomers: ${result.catalog.customers}\nSales synced: ${result.sales.synced}`
+      );
+    } catch (err: any) {
+      Alert.alert('Sync Error', err.message);
+    }
   };
 
   return (

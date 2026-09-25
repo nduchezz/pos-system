@@ -56,6 +56,21 @@ export interface CreateSalePayload {
   paymentPhone?: string;
   notes?: string;
 }
+export interface CreateSalePayload {
+  items: Array<{
+    productId: string;
+    quantity: number;
+    discount: number;
+  }>;
+  customerId?: string | null;
+  cartDiscount: number;
+  paymentMethod: PaymentMethod;
+  amountReceived: number;
+  paymentReference?: string;
+  paymentPhone?: string;
+  notes?: string;
+  clientTransactionId?: string;
+}
 
 export const salesApi = {
   create: async (payload: CreateSalePayload) => {

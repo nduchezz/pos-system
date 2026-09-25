@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { salesApi, Sale } from '../api/sales.api';
 import ReceiptModal from '../components/ReceiptModal';
+import { useSync } from '../context/SyncContext';
+import { useNetwork } from '../context/NetworkContext';
 import { COLORS, SIZES } from '../constants/theme';
 
 const SalesHistoryScreen: React.FC = () => {
@@ -14,6 +16,9 @@ const SalesHistoryScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+
+  const { pendingSales, syncNow, syncing } = useSync();
+  const { isOnline } = useNetwork();
 
   const loadSales = useCallback(async () => {
     try {
@@ -56,9 +61,7 @@ const SalesHistoryScreen: React.FC = () => {
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
-        <Text style={styles.meta}>
-          {new Date(item.createdAt).toLocaleString()}
-        </Text>
+        <Text style={styles.meta}>{new Date(item.createdAt).toLocaleString()}</Text>
         <Text style={styles.meta}>
           {item.user?.name || 'N/A'} • {item.items.length} item(s) • {item.paymentMethod}
         </Text>
@@ -75,6 +78,32 @@ const SalesHistoryScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      {pendingSales.length > 0 && (
+        <View style={styles.pendingBanner}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pendingTitle}>
+              ⏳ {pendingSales.length} sale(s) pending sync
+            </Text>
+            <Text style={styles.pendingHint}>
+              {isOnline ? 'Tap Sync to upload them now' : 'Will sync when online'}
+            </Text>
+          </View>
+          {isOnline && (
+            <TouchableOpacity
+              style={styles.syncBtn}
+              onPress={syncNow}
+              disabled={syncing}
+            >
+              {syncing ? (
+                <ActivityIndicator color={COLORS.white} size="small" />
+              ) : (
+                <Text style={styles.syncBtnText}>Sync</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={COLORS.primary} />
@@ -118,9 +147,7 @@ const styles = StyleSheet.create({
   },
   topRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
   receiptNo: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginRight: 8 },
-  statusBadge: {
-    paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10,
-  },
+  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
   statusText: { fontSize: 9, fontWeight: '700', color: COLORS.white },
   meta: { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
   customer: { fontSize: 11, color: COLORS.primary, marginTop: 2, fontWeight: '600' },
@@ -130,6 +157,18 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: SIZES.xxl },
   emptyText: { fontSize: 16, color: COLORS.textSecondary, fontWeight: '600' },
   emptyHint: { fontSize: 14, color: COLORS.gray, marginTop: SIZES.xs },
+  pendingBanner: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#FFF3E0', borderLeftWidth: 4, borderLeftColor: COLORS.warning,
+    padding: SIZES.md, margin: SIZES.md, borderRadius: 10,
+  },
+  pendingTitle: { fontSize: 14, fontWeight: '700', color: '#E65100' },
+  pendingHint: { fontSize: 11, color: '#E65100', marginTop: 2 },
+  syncBtn: {
+    backgroundColor: COLORS.warning, paddingHorizontal: SIZES.md,
+    paddingVertical: 8, borderRadius: 8, marginLeft: SIZES.sm,
+  },
+  syncBtnText: { color: COLORS.white, fontWeight: '700', fontSize: 12 },
 });
 
 export default SalesHistoryScreen;

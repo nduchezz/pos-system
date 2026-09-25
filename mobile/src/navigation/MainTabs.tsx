@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import DashboardScreen from '../screens/DashboardScreen';
 import MoreScreen from '../screens/MoreScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
@@ -16,6 +16,8 @@ import ExpensesScreen from '../screens/ExpensesScreen';
 import { COLORS } from '../constants/theme';
 import UsersScreen from '../screens/UsersScreen';
 import SettingsScreen from '../screens/SettingsScreen';
+import PendingSalesScreen from '../screens/PendingSalesScreen';
+import ConnectionBanner from '../components/ConnectionBanner';
 
 const Tab = createBottomTabNavigator();
 const MoreStack = createNativeStackNavigator();
@@ -34,7 +36,12 @@ const MoreStackNavigator = () => (
   >
     <MoreStack.Screen name="MoreHome" component={MoreScreen} options={{ title: 'More' }} />
     <MoreStack.Screen name="SalesHistory" component={SalesHistoryScreen} options={{ title: 'Sales History' }} />
-    <MoreStack.Screen name="Categories" component={CategoriesScreen} options={{ title: 'Categories' }} />
+        <MoreStack.Screen
+      name="PendingSales"
+      component={PendingSalesScreen}
+      options={{ title: 'Pending Sales' }}
+    />   
+ <MoreStack.Screen name="Categories" component={CategoriesScreen} options={{ title: 'Categories' }} />
     <MoreStack.Screen name="Products" component={ProductsScreen} options={{ title: 'Products' }} />
     <MoreStack.Screen name="Customers" component={CustomersScreen} options={{ title: 'Customers' }} />
     <MoreStack.Screen name="Suppliers" component={SuppliersScreen} options={{ title: 'Suppliers' }} />
@@ -57,7 +64,7 @@ const MoreStackNavigator = () => (
 const MainTabs: React.FC = () => {
   return (
     <Tab.Navigator
-      screenOptions={{
+            screenOptions={{
         headerStyle: { backgroundColor: COLORS.primary },
         headerTintColor: COLORS.white,
         headerTitleStyle: { fontWeight: '700' },
@@ -72,6 +79,16 @@ const MainTabs: React.FC = () => {
           paddingTop: 6,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        header: ({ options }: any) => (
+          <View style={{ backgroundColor: COLORS.primary }}>
+            <View style={{ paddingTop: 44, paddingBottom: 12, paddingHorizontal: 16 }}>
+              <Text style={{ color: COLORS.white, fontSize: 18, fontWeight: '700' }}>
+                {options.headerTitle || options.title || ''}
+              </Text>
+            </View>
+            <ConnectionBanner />
+          </View>
+        ),
       }}
     >
       <Tab.Screen
