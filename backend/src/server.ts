@@ -16,6 +16,7 @@ import reportRoutes from './routes/report.routes';
 import userRoutes from './routes/user.routes';
 import businessRoutes from './routes/business.routes';
 import { error as errorResponse } from './utils/response';
+import { apiLimiter } from './middlewares/rateLimiter.middleware';
 
 dotenv.config();
 
@@ -28,6 +29,8 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
+// Global rate limiter — applies to all /api routes
+app.use('/api', apiLimiter);
 
 // Root
 app.get('/', (req: Request, res: Response) => {
@@ -57,6 +60,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/business', businessRoutes);
 
+
 // 404
 app.use((req: Request, res: Response) => {
   errorResponse(res, `Route ${req.method} ${req.path} not found`, 404);
@@ -70,9 +74,13 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   errorResponse(res, message, status);
 });
 
-app.listen(Number(PORT), '0.0.0.0', () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-});
+// Only start listening when NOT in test mode
+// (tests import `app` directly and use supertest)
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  });
+}
 
 export default app;

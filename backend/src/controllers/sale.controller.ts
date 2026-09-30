@@ -5,17 +5,24 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { createSaleSchema } from '../validators/sale.validator';
 
 // Generate unique receipt number: RCP-YYYYMMDD-XXXX
-async function generateReceiptNo(businessId: string): Promise<string> {
-  const today = new Date();
-  const ymd = today.toISOString().slice(0, 10).replace(/-/g, '');
+async function generateReceiptNo(
+  tx: any,
+  businessId: string
+): Promise<string> {
+  const now = new Date();
+  const ymd = now.toISOString().slice(0, 10).replace(/-/g, '');
 
-  const count = await prisma.sale.count({
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  // Use the transaction client so we see the current state inside the TX
+  // and include a small random suffix to avoid races in extreme cases
+  const count = await tx.sale.count({
     where: {
       businessId,
-      createdAt: {
-        gte: new Date(today.setHours(0, 0, 0, 0)),
-        lte: new Date(today.setHours(23, 59, 59, 999)),
-      },
+      createdAt: { gte: startOfDay, lte: endOfDay },
     },
   });
 
@@ -156,8 +163,9 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
         }
       }
 
-      // 3. Generate receipt number
-      const receiptNo = await generateReceiptNo(businessId);
+      
+        // 3. Generate receipt number (pass tx so we count within the transaction)
+      const receiptNo = await generateReceiptNo(tx, businessId);
 
       // 4. Create sale
       const sale = await tx.sale.create({

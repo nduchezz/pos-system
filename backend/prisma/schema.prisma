@@ -252,7 +252,7 @@ model Sale {
   businessId     String
   userId         String
   customerId     String?
-    receiptNo           String        @unique
+    receiptNo           String 
   clientTransactionId String?       @unique
   subtotal            Float         @default(0)
   discount            Float         @default(0)
@@ -273,6 +273,7 @@ model Sale {
   payments       Payment[]
   refunds        Refund[]
 
+  @@unique([businessId, receiptNo])
   @@index([businessId])
   @@index([userId])
   @@index([customerId])
