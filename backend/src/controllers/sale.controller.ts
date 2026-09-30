@@ -3,6 +3,7 @@ import prisma from '../config/prisma';
 import { success, error } from '../utils/response';
 import { asyncHandler } from '../utils/asyncHandler';
 import { createSaleSchema } from '../validators/sale.validator';
+import { auditService } from '../services/audit.service';
 
 // Generate unique receipt number: RCP-YYYYMMDD-XXXX
 async function generateReceiptNo(
@@ -244,6 +245,25 @@ export const createSale = asyncHandler(async (req: Request, res: Response) => {
       });
 
       return fullSale;
+    });
+
+
+
+// Audit log
+    await auditService.log({
+      businessId,
+      userId,
+      action: 'SALE_CREATED',
+      entity: 'Sale',
+      entityId: result!.id,
+      newValue: {
+        receiptNo: result!.receiptNo,
+        grandTotal: result!.grandTotal,
+        paymentMethod,
+        itemCount: result!.items.length,
+      },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
     });
 
     return success(res, { sale: result }, 'Sale completed successfully', 201);

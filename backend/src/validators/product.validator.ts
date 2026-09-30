@@ -1,14 +1,15 @@
+import { sanitizeString, sanitizeOptionalString } from '../utils/sanitize';
 import { z } from 'zod';
 
 const unitEnum = z.enum(['PIECE', 'BOX', 'PACKET', 'KILOGRAM', 'GRAM', 'LITRE', 'BOTTLE', 'METRE']);
 
 export const createProductSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  sku: z.string().min(1, 'SKU is required').max(50),
+    name: z.string().min(2, 'Name must be at least 2 characters').max(100).transform(sanitizeString),
+  sku: z.string().min(1, 'SKU is required').max(50).transform((s) => s.trim().toUpperCase()),
   barcode: z.string().max(50).optional().or(z.literal('')),
   categoryId: z.string().uuid().optional().nullable(),
   supplierId: z.string().uuid().optional().nullable(),
-  description: z.string().max(500).optional().or(z.literal('')),
+    description: z.string().max(500).optional().or(z.literal('')).transform(sanitizeOptionalString),
   buyingPrice: z.number().nonnegative('Buying price cannot be negative'),
   sellingPrice: z.number().nonnegative('Selling price cannot be negative'),
   stockQuantity: z.number().int().nonnegative().default(0),

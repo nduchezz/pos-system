@@ -5,6 +5,7 @@ import { signToken } from '../utils/jwt';
 import { success, error } from '../utils/response';
 import { asyncHandler } from '../utils/asyncHandler';
 import { registerSchema, loginSchema } from '../validators/auth.validator';
+import { auditService } from '../services/audit.service';
 
 // POST /api/auth/register
 export const register = asyncHandler(async (req: Request, res: Response) => {
@@ -88,14 +89,48 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     include: { business: true },
   });
 
-  if (!user || !user.status) {
+   if (!user || !user.status) {
+    // Log failed attempt (only if we know the business)
+    if (user) {
+      await auditService.log({
+        businessId: user.businessId,
+        userId: null,
+        action: 'LOGIN_FAILED',
+        entity: 'User',
+        entityId: user.id,
+        newValue: { reason: 'invalid_or_disabled' },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+    }
     return error(res, 'Invalid credentials', 401);
   }
 
-  const ok = await comparePassword(password, user.passwordHash);
+    const ok = await comparePassword(password, user.passwordHash);
   if (!ok) {
+    await auditService.log({
+      businessId: user.businessId,
+      userId: user.id,
+      action: 'LOGIN_FAILED',
+      entity: 'User',
+      entityId: user.id,
+      newValue: { reason: 'wrong_password' },
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+    });
     return error(res, 'Invalid credentials', 401);
   }
+
+  // Log successful login
+  await auditService.log({
+    businessId: user.businessId,
+    userId: user.id,
+    action: 'LOGIN_SUCCESS',
+    entity: 'User',
+    entityId: user.id,
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
 
   await prisma.user.update({
     where: { id: user.id },

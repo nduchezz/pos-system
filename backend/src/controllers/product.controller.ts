@@ -1,3 +1,4 @@
+import { auditService } from '../services/audit.service';
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { success, error } from '../utils/response';
@@ -145,7 +146,17 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 
     return p;
   });
-
+  // Audit log
+  await auditService.log({
+    businessId,
+    userId,
+    action: 'PRODUCT_CREATED',
+    entity: 'Product',
+    entityId: product.id,
+    newValue: { name: product.name, sku: product.sku, sellingPrice: product.sellingPrice },
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
   return success(res, { product }, 'Product created', 201);
 });
 
@@ -194,7 +205,25 @@ export const updateProduct = asyncHandler(async (req: Request, res: Response) =>
     },
   });
 
-  return success(res, { product }, 'Product updated');
+    // Determine action type
+  const isPriceChange =
+    data.sellingPrice !== undefined && data.sellingPrice !== existing.sellingPrice ||
+    data.buyingPrice !== undefined && data.buyingPrice !== existing.buyingPrice;
+
+  // Audit log
+  await auditService.log({
+    businessId,
+    userId: req.user!.userId,
+    action: isPriceChange ? 'PRICE_CHANGED' : 'PRODUCT_UPDATED',
+    entity: 'Product',
+    entityId: product.id,
+    oldValue: { name: existing.name, sellingPrice: existing.sellingPrice, buyingPrice: existing.buyingPrice },
+    newValue: { name: product.name, sellingPrice: product.sellingPrice, buyingPrice: product.buyingPrice },
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
+  });
+
+return success(res, { product }, 'Product updated');
 });
 
 // DELETE /api/products/:id (soft delete)
@@ -210,6 +239,16 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
   await prisma.product.update({
     where: { id },
     data: { deletedAt: new Date(), status: false },
+  });
+  await auditService.log({
+    businessId,
+    userId: req.user!.userId,
+    action: 'PRODUCT_DELETED',
+    entity: 'Product',
+    entityId: id,
+    oldValue: { name: existing.name, sku: existing.sku },
+    ipAddress: req.ip,
+    userAgent: req.headers['user-agent'],
   });
 
   return success(res, null, 'Product deleted');
