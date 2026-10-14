@@ -6,8 +6,7 @@ services:
     region: frankfurt
     rootDir: backend
     buildCommand: npm install --production=false && npm run build
-    startCommand: npm run start
-    preDeployCommand: npm run prisma:migrate
+    startCommand: npx prisma migrate deploy && npm run start
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
