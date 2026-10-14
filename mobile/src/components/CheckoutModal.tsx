@@ -140,8 +140,7 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
         const payload = buildPayload(clientTransactionId);
 
         try {
-          const queued = await pendingSalesRepo.insert({
-            clientTransactionId,
+          await pendingSalesRepo.insert({...});
             payloadJson: JSON.stringify(payload),
             localReceiptNo,
             total: grandTotal,

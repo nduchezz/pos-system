@@ -181,8 +181,6 @@ export const me = asyncHandler(async (req: Request, res: Response) => {
   if (!user) return error(res, 'User not found', 404);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { passwordHash, ...safeUser } = user;
 
   return success(res, { user: safeUser });

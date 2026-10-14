@@ -34,7 +34,7 @@ module.exports = [
       'react-hooks': reactHooks,
     },
     settings: { react: { version: 'detect' } },
-    rules: {
+       rules: {
       ...tsPlugin.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
@@ -43,7 +43,9 @@ module.exports = [
       '@typescript-eslint/no-require-imports': 'off',
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
-      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/purity': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },

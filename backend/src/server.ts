@@ -78,9 +78,7 @@ app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
 // (tests import `app` directly and use supertest)
 if (process.env.NODE_ENV !== 'test') {
   app.listen(Number(PORT), '0.0.0.0', () => {
-    // eslint-disable-next-line no-console
     console.warn(`🚀 Server running on http://localhost:${PORT}`);
-    // eslint-disable-next-line no-console
     console.warn(`🌍 Environment: ${process.env.NODE_ENV}`);
   });
 }
