@@ -121,12 +121,15 @@ export const SyncProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [isOnline, isAuthenticated]);
 
   // Sync on app startup (if online + authenticated)
-  useEffect(() => {
-    if (isOnline && isAuthenticated) {
-      runSync();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+ useEffect(() => {
+  if (!isOnline || !isAuthenticated) return;
+
+  const t = setTimeout(() => {
+    runSync();
+  }, 100);
+
+  return () => clearTimeout(t);
+}, [isOnline, isAuthenticated]);
 
   // Re-sync when app returns to foreground
   useEffect(() => {

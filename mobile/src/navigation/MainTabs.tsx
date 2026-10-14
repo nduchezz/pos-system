@@ -22,9 +22,6 @@ import ConnectionBanner from '../components/ConnectionBanner';
 const Tab = createBottomTabNavigator();
 const MoreStack = createNativeStackNavigator();
 
-// Placeholder for tabs we haven't built yet
-const Placeholder: React.FC = () => null;
-
 // More stack with all nested screens
 const MoreStackNavigator = () => (
   <MoreStack.Navigator

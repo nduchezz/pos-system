@@ -80,7 +80,7 @@ export const inventorySummary = asyncHandler(async (req: Request, res: Response)
     },
   });
 
-  let totalProducts = products.length;
+  const totalProducts = products.length;
   let totalStockUnits = 0;
   let inventoryValueBuying = 0;
   let inventoryValueSelling = 0;

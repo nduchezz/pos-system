@@ -1,5 +1,5 @@
 import api from '../api/client';
-import { pendingSalesRepo, productsRepo } from '../database';
+import { pendingSalesRepo } from '../database';
 
 export interface SalesSyncResult {
   total: number;

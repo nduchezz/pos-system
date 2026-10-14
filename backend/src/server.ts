@@ -67,7 +67,7 @@ app.use((req: Request, res: Response) => {
 });
 
 // Global error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
   console.error('❌ Error:', err);
   const status = err.status || 500;
   const message = err.message || 'Internal server error';
@@ -78,8 +78,10 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // (tests import `app` directly and use supertest)
 if (process.env.NODE_ENV !== 'test') {
   app.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+    // eslint-disable-next-line no-console
+    console.warn(`🚀 Server running on http://localhost:${PORT}`);
+    // eslint-disable-next-line no-console
+    console.warn(`🌍 Environment: ${process.env.NODE_ENV}`);
   });
 }
 

@@ -9,7 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { categoriesApi, Category } from '../api/categories.api';
 import { COLORS, SIZES } from '../constants/theme';
 
-const CategoriesScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const CategoriesScreen: React.FC<{ navigation: any }> = ({ navigation: _navigation }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);

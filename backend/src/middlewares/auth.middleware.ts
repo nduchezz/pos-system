@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken, JwtPayload } from '../utils/jwt';
 import { error } from '../utils/response';
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace
 declare global {
   namespace Express {
     interface Request {
@@ -19,7 +22,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
   try {
     req.user = verifyToken(token);
     next();
-  } catch (err) {
+   } catch {
     return error(res, 'Invalid or expired token', 401);
   }
 };

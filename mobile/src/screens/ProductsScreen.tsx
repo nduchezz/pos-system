@@ -12,7 +12,7 @@ import { COLORS, SIZES } from '../constants/theme';
 
 const UNITS: Unit[] = ['PIECE', 'BOX', 'PACKET', 'KILOGRAM', 'GRAM', 'LITRE', 'BOTTLE', 'METRE'];
 
-const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+const ProductsScreen: React.FC<{ navigation: any }> = ({ navigation: _navigation }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);

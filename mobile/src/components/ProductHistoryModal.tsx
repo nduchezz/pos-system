@@ -25,15 +25,29 @@ const MOVEMENT_COLORS: Record<string, string> = {
 
 const ProductHistoryModal: React.FC<Props> = ({ product, visible, onClose }) => {
   const [movements, setMovements] = useState<StockMovement[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);  // was useState(false)
 
-  useEffect(() => {
+       useEffect(() => {
     if (!visible || !product) return;
-    setLoading(true);
-    inventoryApi.productHistory(product.id)
-      .then((res) => setMovements(res.movements))
-      .catch(() => setMovements([]))
-      .finally(() => setLoading(false));
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const res = await inventoryApi.productHistory(product.id);
+        if (!cancelled) setMovements(res.movements);
+      } catch {
+        if (!cancelled) setMovements([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
   }, [visible, product?.id]);
 
   if (!product) return null;

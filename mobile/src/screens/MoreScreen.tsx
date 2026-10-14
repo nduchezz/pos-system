@@ -5,7 +5,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { COLORS, SIZES } from '../constants/theme';
-import { Alert as RNAlert } from 'react-native';
 import { productsRepo, categoriesRepo, customersRepo, pendingSalesRepo } from '../database';
 import { syncService } from '../services/sync.service';
 

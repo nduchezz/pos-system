@@ -84,21 +84,16 @@ export const dashboardChart = asyncHandler(async (req: Request, res: Response) =
   const period = (req.query.period as string) || 'week';
 
   let from: Date;
-  let trunc: string;
   let steps: number;
 
-  const now = new Date();
   if (period === 'today') {
     from = startOfDay();
-    trunc = 'hour';
     steps = 24;
   } else if (period === 'month') {
     from = startOfMonth();
-    trunc = 'day';
     steps = 31;
   } else {
     from = startOfWeek();
-    trunc = 'day';
     steps = 7;
   }
 

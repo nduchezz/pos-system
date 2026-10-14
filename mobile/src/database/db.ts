@@ -1,7 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
-let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
 const SCHEMA = `
   -- Products cache
@@ -109,7 +108,6 @@ export async function resetDatabase(): Promise<void> {
     DROP TABLE IF EXISTS sync_meta;
   `);
   dbInstance = null;
-  initPromise = null;
 }
 
 export const SYNC_KEYS = {

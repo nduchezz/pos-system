@@ -1,0 +1,185 @@
+═══════════════════════════════════════════════════════
+  POS SYSTEM AUDIT — 2026-09-30_14-56
+═══════════════════════════════════════════════════════
+
+═══════════ BACKEND ═══════════
+
+── TypeScript Check ──
+
+── ESLint ──
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.5
+
+ESLint couldn't find an eslint.config.(js|mjs|cjs) file.
+
+From ESLint v9.0.0, the default configuration file is now eslint.config.js.
+If you are using a .eslintrc.* file, please follow the migration guide
+to update your configuration file to the new format:
+
+https://eslint.org/docs/latest/use/configure/migration-guide
+
+If you still have problems after following the migration guide, please stop by
+https://eslint.org/chat/help to chat with the team.
+
+
+── Dead Code (unused exports) ──
+src/server.ts:86 - default
+src/utils/sanitize.ts:29 - normalizePhone
+src/utils/sanitize.ts:43 - normalizeEmail
+src/validators/auth.validator.ts:18 - RegisterInput
+src/validators/auth.validator.ts:19 - LoginInput
+src/validators/category.validator.ts:15 - CreateCategoryInput
+src/validators/category.validator.ts:16 - UpdateCategoryInput
+src/validators/customer.validator.ts:15 - CreateCustomerInput
+src/validators/expense.validator.ts:15 - CreateExpenseInput
+src/validators/product.validator.ts:38 - CreateProductInput
+src/validators/product.validator.ts:39 - UpdateProductInput
+src/validators/product.validator.ts:40 - AdjustStockInput
+src/validators/sale.validator.ts:29 - CreateSaleInput
+src/validators/supplier.validator.ts:16 - CreateSupplierInput
+
+── Unused Dependencies ──
+Unused devDependencies
+* @types/jest
+* depcheck
+* eslint-plugin-import
+* eslint-plugin-n
+* eslint-plugin-promise
+* ts-prune
+
+── npm audit (production only) ──
+found 0 vulnerabilities
+
+── Test Summary ──
+      ✓ rejects adjustment that would go below zero (1044 ms)
+      ✓ cashier can adjust stock (allowed) (1002 ms)
+    GET /api/inventory/summary
+      ✓ returns correct totals (1012 ms)
+    GET /api/inventory/movements
+      ✓ lists stock movements for the business only (1286 ms)
+    GET /api/inventory/movements/product/:id
+      ✓ returns full history for one product (1156 ms)
+
+Test Suites: 7 passed, 7 total
+Tests:       93 passed, 93 total
+Snapshots:   0 total
+Time:        103.651 s, estimated 112 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?
+
+═══════════ MOBILE ═══════════
+
+── TypeScript Check ──
+
+── ESLint ──
+
+Oops! Something went wrong! :(
+
+ESLint: 9.39.5
+
+ESLint couldn't find an eslint.config.(js|mjs|cjs) file.
+
+From ESLint v9.0.0, the default configuration file is now eslint.config.js.
+If you are using a .eslintrc.* file, please follow the migration guide
+to update your configuration file to the new format:
+
+https://eslint.org/docs/latest/use/configure/migration-guide
+
+If you still have problems after following the migration guide, please stop by
+https://eslint.org/chat/help to chat with the team.
+
+
+── Dead Code ──
+src/constants/theme.ts:26 - FONTS
+src/database/index.ts:1 - getDb
+src/database/index.ts:1 - resetDatabase
+src/database/index.ts:1 - SYNC_KEYS
+src/database/index.ts:2 - productsRepo
+src/database/index.ts:3 - categoriesRepo
+src/database/index.ts:4 - customersRepo
+src/database/index.ts:5 - pendingSalesRepo
+src/database/index.ts:6 - PendingSale
+src/database/index.ts:6 - PendingSaleStatus
+src/database/index.ts:7 - syncMetaRepo
+src/navigation/index.tsx:40 - default
+src/types/index.ts:21 - AuthResponse
+
+── npm audit (production only) ──
+# npm audit report
+
+uuid  <11.1.1
+Severity: moderate
+uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided - https://github.com/advisories/GHSA-w5hq-g745-h8pq
+fix available via `npm audit fix --force`
+Will install expo-sharing@14.0.8, which is a breaking change
+node_modules/uuid
+  xcode  >=0.9.2
+  Depends on vulnerable versions of uuid
+  node_modules/xcode
+    @expo/config-plugins  *
+    Depends on vulnerable versions of xcode
+    node_modules/@expo/config-plugins
+      @expo/cli  <=0.0.0-canary-20231123-1b19f96-4 || >=0.0.1-canary-20231125-d600e44
+      Depends on vulnerable versions of @expo/config
+      Depends on vulnerable versions of @expo/config-plugins
+      Depends on vulnerable versions of @expo/inline-modules
+      Depends on vulnerable versions of @expo/metro-config
+      Depends on vulnerable versions of @expo/prebuild-config
+      node_modules/expo/node_modules/@expo/cli
+        expo  40.0.0-alpha.0 - 40.0.0-beta.5 || >=41.0.0-alpha.0
+        Depends on vulnerable versions of @expo/cli
+        Depends on vulnerable versions of @expo/config
+        Depends on vulnerable versions of @expo/config-plugins
+        Depends on vulnerable versions of @expo/local-build-cache-provider
+        Depends on vulnerable versions of @expo/metro-config
+        node_modules/expo
+      @expo/config  <=0.0.1-canary-20240418-8d74597 || >=3.3.23-alpha.0
+      Depends on vulnerable versions of @expo/config-plugins
+      node_modules/@expo/config
+        @expo/local-build-cache-provider  *
+        Depends on vulnerable versions of @expo/config
+        node_modules/@expo/local-build-cache-provider
+        @expo/metro-config  <=0.0.1-canary-20240418-8d74597 || >=0.1.49-alpha.0
+        Depends on vulnerable versions of @expo/config
+        node_modules/expo/node_modules/@expo/metro-config
+        @expo/prebuild-config  *
+        Depends on vulnerable versions of @expo/config
+        Depends on vulnerable versions of @expo/config-plugins
+        node_modules/@expo/prebuild-config
+      @expo/inline-modules  >=0.0.2-canary-20260409-6fc2991
+      Depends on vulnerable versions of @expo/config-plugins
+      node_modules/@expo/inline-modules
+      expo-sharing  >=14.0.9-canary-20251205-756eb7a
+      Depends on vulnerable versions of @expo/config-plugins
+      node_modules/expo-sharing
+
+11 moderate severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+═══════════ SECURITY HARDENING CHECK ═══════════
+
+── .env files tracked by git? ──
+backend/.env.test
+
+── Hardcoded secrets search ──
+
+── console.log in production code ──
+/home/unruly/pos-system/backend/src/server.ts:81:    console.log(`🚀 Server running on http://localhost:${PORT}`);
+/home/unruly/pos-system/backend/src/server.ts:82:    console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+/home/unruly/pos-system/mobile/src/context/SyncContext.tsx:70:    console.log('🔄 runSync called', {
+/home/unruly/pos-system/mobile/src/context/SyncContext.tsx:77:      console.log('⚠️ Skipping sync — offline');
+/home/unruly/pos-system/mobile/src/context/SyncContext.tsx:81:      console.log('⚠️ Skipping sync — not authenticated');
+/home/unruly/pos-system/mobile/src/context/SyncContext.tsx:90:      console.log('✅ Sync result:', JSON.stringify(result, null, 2));
+/home/unruly/pos-system/mobile/src/context/SyncContext.tsx:94:      console.log('❌ Sync error:', err.message);
+/home/unruly/pos-system/mobile/src/components/CheckoutModal.tsx:135:        console.log('🔴 Offline sale — queueing...', { clientTransactionId, grandTotal });
+/home/unruly/pos-system/mobile/src/components/CheckoutModal.tsx:147:          console.log('✅ Queued successfully:', queued.id);
+
+── Raw SQL usage (should be empty) ──
+
+═══════════════════════════════════════════════════════
+  AUDIT COMPLETE — /home/unruly/pos-system/audit-results/audit-2026-09-30_14-56.txt
+═══════════════════════════════════════════════════════

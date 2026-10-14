@@ -60,7 +60,7 @@ const POSScreen: React.FC = () => {
       ]);
       setProducts(prods);
       setCategories(cats);
-    } catch (err: any) {
+    } catch {
       // Fallback: if API fails, read from SQLite
       try {
         const prods = search
@@ -69,7 +69,7 @@ const POSScreen: React.FC = () => {
         const cats = await categoriesRepo.getAll();
         setProducts(prods);
         setCategories(cats);
-      } catch (dbErr) {
+      } catch {
         Alert.alert('Error', 'Failed to load products');
       }
     } finally {

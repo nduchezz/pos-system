@@ -13,7 +13,12 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "test": "dotenv -e .env.test -- jest",
     "test:watch": "dotenv -e .env.test -- jest --watch",
-    "test:verbose": "dotenv -e .env.test -- jest --verbose"
+    "test:verbose": "dotenv -e .env.test -- jest --verbose",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "dead-code": "ts-prune | grep -v \"used in module\" || true",
+    "depcheck": "depcheck || true",
+    "audit": "npm audit --omit=dev"
   },
   "keywords": [
     "pos",
@@ -43,13 +48,21 @@
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.9.0",
     "@types/supertest": "^7.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.71.0",
+    "@typescript-eslint/parser": "^8.71.0",
+    "depcheck": "^1.4.7",
     "dotenv-cli": "^11.0.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^18.4.0",
+    "eslint-plugin-promise": "^7.3.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.7",
     "prisma": "^5.22.0",
     "supertest": "^7.3.0",
     "ts-jest": "^29.4.14",
     "ts-node": "^10.9.2",
+    "ts-prune": "^0.10.3",
     "typescript": "^5.6.3"
   },
   "allowScripts": {

@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
   ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { productsApi, Product } from '../api/products.api';
 import { MovementType } from '../api/inventory.api';
 import { COLORS, SIZES } from '../constants/theme';

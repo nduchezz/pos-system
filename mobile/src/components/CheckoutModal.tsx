@@ -13,6 +13,10 @@ import { pendingSalesRepo, productsRepo } from '../database';
 import { generateUUID } from '../utils/uuid';
 import { COLORS, SIZES } from '../constants/theme';
 
+function generateOfflineReceiptNo(): string {
+  return `OFFLINE-${Date.now()}`;
+}
+
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -132,8 +136,7 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
     try {
       // OFFLINE PATH
            if (!isOnline) {
-        console.log('🔴 Offline sale — queueing...', { clientTransactionId, grandTotal });
-        const localReceiptNo = `OFFLINE-${Date.now()}`;
+        const localReceiptNo = generateOfflineReceiptNo();
         const payload = buildPayload(clientTransactionId);
 
         try {
@@ -144,7 +147,6 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
             total: grandTotal,
             createdAt: new Date().toISOString(),
           });
-          console.log('✅ Queued successfully:', queued.id);
         } catch (insertErr: any) {
           console.error('❌ Queue insert failed:', insertErr.message);
           Alert.alert('Queue Error', insertErr.message);
@@ -198,7 +200,7 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
     } catch (err: any) {
       // If network fails mid-request, fall back to offline queue
       if (!err.response) {
-        const localReceiptNo = `OFFLINE-${Date.now()}`;
+        const localReceiptNo = generateOfflineReceiptNo();
         const payload = buildPayload(clientTransactionId);
 
         await pendingSalesRepo.insert({
