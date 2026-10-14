@@ -13,10 +13,6 @@ import { pendingSalesRepo, productsRepo } from '../database';
 import { generateUUID } from '../utils/uuid';
 import { COLORS, SIZES } from '../constants/theme';
 
-function generateOfflineReceiptNo(): string {
-  return `OFFLINE-${Date.now()}`;
-}
-
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -30,6 +26,10 @@ const PAYMENT_METHODS: Array<{ value: PaymentMethod; label: string; icon: string
   { value: 'BANK', label: 'Bank', icon: '🏦' },
   { value: 'CREDIT', label: 'Credit', icon: '📝' },
 ];
+
+function generateOfflineReceiptNo(): string {
+  return `OFFLINE-${Date.now()}`;
+}
 
 const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
   const cart = useCartStore();
@@ -124,6 +124,27 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
     };
   };
 
+  const queueOffline = async (clientTransactionId: string): Promise<Sale> => {
+    const localReceiptNo = generateOfflineReceiptNo();
+    const payload = buildPayload(clientTransactionId);
+
+    await pendingSalesRepo.insert({
+      clientTransactionId,
+      payloadJson: JSON.stringify(payload),
+      localReceiptNo,
+      total: grandTotal,
+      createdAt: new Date().toISOString(),
+    });
+
+    for (const item of cart.items) {
+      await productsRepo.decrementStock(item.productId, item.quantity);
+    }
+
+    await reloadPending();
+
+    return buildFakeSale(clientTransactionId, localReceiptNo, 'PENDING');
+  };
+
   const handleConfirm = async () => {
     if (!isValid) {
       Alert.alert('Checkout', 'Please complete the payment details.');
@@ -135,49 +156,8 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
 
     try {
       // OFFLINE PATH
-           if (!isOnline) {
-        const localReceiptNo = generateOfflineReceiptNo();
-        const payload = buildPayload(clientTransactionId);
-
-        try {
-          await pendingSalesRepo.insert({...});
-            payloadJson: JSON.stringify(payload),
-            localReceiptNo,
-            total: grandTotal,
-            createdAt: new Date().toISOString(),
-          });
-        } catch (insertErr: any) {
-          console.error('❌ Queue insert failed:', insertErr.message);
-          Alert.alert('Queue Error', insertErr.message);
-          setProcessing(false);
-          return;
-        }
-
-        for (const item of cart.items) {
-          await productsRepo.decrementStock(item.productId, item.quantity);
-        }
-
-        await reloadPending();
-        // ... rest of the code
-        // 1. Save to SQLite queue
-        await pendingSalesRepo.insert({
-          clientTransactionId,
-          payloadJson: JSON.stringify(payload),
-          localReceiptNo,
-          total: grandTotal,
-          createdAt: new Date().toISOString(),
-        });
-
-        // 2. Decrement local stock for each item
-        for (const item of cart.items) {
-          await productsRepo.decrementStock(item.productId, item.quantity);
-        }
-
-        // 3. Reload pending list
-        await reloadPending();
-
-        // 4. Show receipt
-        const fakeSale = buildFakeSale(clientTransactionId, localReceiptNo, 'PENDING');
+      if (!isOnline) {
+        const fakeSale = await queueOffline(clientTransactionId);
         cart.clearCart();
         resetForm();
         setProcessing(false);
@@ -197,41 +177,25 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
       resetForm();
       onSuccess(sale);
     } catch (err: any) {
-      // If network fails mid-request, fall back to offline queue
+      // Network failure mid-request → queue
       if (!err.response) {
-        const localReceiptNo = generateOfflineReceiptNo();
-        const payload = buildPayload(clientTransactionId);
-
-        await pendingSalesRepo.insert({
-          clientTransactionId,
-          payloadJson: JSON.stringify(payload),
-          localReceiptNo,
-          total: grandTotal,
-          createdAt: new Date().toISOString(),
-        });
-
-        for (const item of cart.items) {
-          await productsRepo.decrementStock(item.productId, item.quantity);
+        try {
+          const fakeSale = await queueOffline(clientTransactionId);
+          cart.clearCart();
+          resetForm();
+          setProcessing(false);
+          onSuccess(fakeSale);
+          Alert.alert('Saved Offline', 'Network error — sale queued for later sync.');
+          return;
+        } catch (queueErr: any) {
+          Alert.alert('Sale Failed', queueErr.message || 'Could not save sale offline.');
         }
-
-        await reloadPending();
-
-        const fakeSale = buildFakeSale(clientTransactionId, localReceiptNo, 'PENDING');
-        cart.clearCart();
-        resetForm();
-        setProcessing(false);
-        onSuccess(fakeSale);
+      } else {
         Alert.alert(
-          'Saved Offline',
-          'Network error — sale queued for later sync.'
+          'Sale Failed',
+          err.response?.data?.message || err.message || 'Could not complete sale.'
         );
-        return;
       }
-
-      Alert.alert(
-        'Sale Failed',
-        err.response?.data?.message || err.message || 'Could not complete sale.'
-      );
     } finally {
       setProcessing(false);
     }
@@ -251,9 +215,17 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
+    >
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <View style={styles.header}>
             <TouchableOpacity onPress={handleClose} disabled={processing}>
               <Text style={styles.cancelText}>Cancel</Text>
@@ -316,12 +288,20 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
                 {PAYMENT_METHODS.map((m) => (
                   <TouchableOpacity
                     key={m.value}
-                    style={[styles.paymentTile, paymentMethod === m.value && styles.paymentTileActive]}
+                    style={[
+                      styles.paymentTile,
+                      paymentMethod === m.value && styles.paymentTileActive,
+                    ]}
                     onPress={() => setPaymentMethod(m.value)}
                     disabled={processing}
                   >
                     <Text style={styles.paymentIcon}>{m.icon}</Text>
-                    <Text style={[styles.paymentLabel, paymentMethod === m.value && styles.paymentLabelActive]}>
+                    <Text
+                      style={[
+                        styles.paymentLabel,
+                        paymentMethod === m.value && styles.paymentLabelActive,
+                      ]}
+                    >
                       {m.label}
                     </Text>
                   </TouchableOpacity>
@@ -422,7 +402,10 @@ const CheckoutModal: React.FC<Props> = ({ visible, onClose, onSuccess }) => {
 
           <View style={styles.footer}>
             <TouchableOpacity
-              style={[styles.confirmBtn, (!isValid || processing) && styles.confirmBtnDisabled]}
+              style={[
+                styles.confirmBtn,
+                (!isValid || processing) && styles.confirmBtnDisabled,
+              ]}
               onPress={handleConfirm}
               disabled={!isValid || processing}
             >
